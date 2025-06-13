@@ -10,13 +10,17 @@ const contactSchema = Joi.object({
 
 exports.addContact = async (req, res) => {
   try {
+    console.log('Received request body:', req.body);
+    
     // Validate request body
     const { error, value } = contactSchema.validate(req.body);
     if (error) {
+      console.log('Validation error:', error.details);
       return res.status(400).json({ error: error.details[0].message });
     }
 
     const { user_id, contact_name, contact_email } = value;
+    console.log('Validated data:', { user_id, contact_name, contact_email });
 
     // Check for existing contact with the same email for this user
     const existing = await db.query(
@@ -39,8 +43,16 @@ exports.addContact = async (req, res) => {
       message: 'Contact added successfully'
     });
   } catch (err) {
-    console.error('Error adding contact:', err);
-    res.status(500).json({ error: 'Failed to add contact' });
+    console.error('Detailed error adding contact:', {
+      message: err.message,
+      stack: err.stack,
+      code: err.code,
+      detail: err.detail
+    });
+    res.status(500).json({ 
+      error: 'Failed to add contact',
+      details: err.message 
+    });
   }
 };
 
